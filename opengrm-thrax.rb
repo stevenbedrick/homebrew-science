@@ -16,7 +16,8 @@ class OpengrmThrax < Formula
 
   test do
     # see http://www.openfst.org/twiki/bin/view/GRM/ThraxQuickTour
-    cd "#{share}/thrax/grammars" do
+    cp_r share/"thrax/grammars", testpath
+    cd "grammars" do
       system "thraxmakedep", "example.grm"
       system "make"
       system "thraxrandom-generator", "--far=example.far",
