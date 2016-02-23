@@ -24,7 +24,9 @@ class OpengrmNgram < Formula
       # tests using normalized The Importance of Being Earnest, based on
       # examples from the OpenGRM "NGram quick tour" page...
       system bin/"ngramsymbols", fname, "e.syms"
-      system bin/"farcompilestrings", "-symbols=e.syms",
+
+      # NB: farcompilestrings is distributed as part of OpenFST
+      system "farcompilestrings", "-symbols=e.syms",
                                       "-keep_symbols=1",
                                       fname, "e.far"
       system bin/"ngramcount", "-order=5", "e.far", "e.cnts"
