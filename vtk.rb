@@ -1,15 +1,16 @@
 class Vtk < Formula
   homepage "http://www.vtk.org"
-  url "http://www.vtk.org/files/release/6.3/VTK-6.3.0.tar.gz"
-  mirror "https://fossies.org/linux/misc/VTK-6.3.0.tar.gz"
-  sha256 "92a493354c5fa66bea73b5fc014154af5d9f3f6cee8d20a826f4cd5d4b0e8a5e"
+  url "http://www.vtk.org/files/release/7.0/VTK-7.0.0.tar.gz"
+  mirror "https://fossies.org/linux/misc/VTK-7.0.0.tar.gz"
+  sha256 "78a990a15ead79cdc752e86b83cfab7dbf5b7ef51ba409db02570dbdd9ec32c3"
+
   head "https://github.com/Kitware/VTK.git"
-  revision 1
 
   bottle do
-    sha256 "7e2ded78d69e2cb86e30f2cece78ab66acf553970676251e3d32685fdf7c7443" => :el_capitan
-    sha256 "bbe389a1f316d5f43b5310e1dcd297b686dcae5aa58c07eceaf839b776e3d2fe" => :yosemite
-    sha256 "3efa044d6f708e6480fd30878603ae1738bf11ae527ff08412ba18c0384e4047" => :mavericks
+    revision 1
+    sha256 "f5370ca4b94383438348f44a51a1756ad6f3b9f8dae7da395c476d05956befbf" => :el_capitan
+    sha256 "30b6b50bbf8babb49da1e924aeaaa598a4381b55e46db3aa27ac2bf2ecf2e7e2" => :yosemite
+    sha256 "81d1c035f77a95ecf6e3062a03907d5ebbedcfe3e55d6513088f306204a907d0" => :mavericks
   end
 
   deprecated_option "examples" => "with-examples"
@@ -31,6 +32,7 @@ class Vtk < Formula
   depends_on "qt5" => :optional
 
   depends_on :python => :recommended if MacOS.version <= :snow_leopard
+  depends_on :python3 => :optional
 
   depends_on "boost" => :recommended
   depends_on "fontconfig" => :recommended
@@ -51,13 +53,20 @@ class Vtk < Formula
     end
   end
 
+  if build.with? "python3"
+    if build.with? "qt"
+      depends_on "sip" => ["with-python3", "without-python"]
+      depends_on "pyqt" => ["with-python3", "without-python" ]
+    elsif build.with? "qt5"
+      depends_on "sip"   => ["with-python3", "without-python"]
+      depends_on "pyqt5"
+    end
+  end
+
   def install
     args = std_cmake_args + %W[
       -DVTK_REQUIRED_OBJCXX_FLAGS=''
-      -DVTK_USE_CARBON=OFF
-      -DVTK_USE_TK=OFF
       -DBUILD_SHARED_LIBS=ON
-      -DIOKit:FILEPATH=#{MacOS.sdk_path}/System/Library/Frameworks/IOKit.framework
       -DCMAKE_INSTALL_RPATH:STRING=#{lib}
       -DCMAKE_INSTALL_NAME_DIR:STRING=#{lib}
       -DVTK_USE_SYSTEM_EXPAT=ON
@@ -107,18 +116,31 @@ class Vtk < Formula
     ENV.cxx11 if build.cxx11?
 
     mkdir "build" do
-      if build.with? "python"
+      if build.with?("python") && build.without?("python3")
         args << "-DVTK_WRAP_PYTHON=ON"
         # CMake picks up the system"s python dylib, even if we have a brewed one.
         args << "-DPYTHON_LIBRARY='#{`python-config --prefix`.chomp}/lib/libpython2.7.dylib'"
         # Set the prefix for the python bindings to the Cellar
         args << "-DVTK_INSTALL_PYTHON_MODULE_DIR='#{lib}/python2.7/site-packages'"
-
-        if build.with? "qt"
-          args << "-DVTK_WRAP_PYTHON_SIP=ON"
-          args << "-DSIP_PYQT_DIR='#{Formula["pyqt"].opt_share}/sip'"
-        end
+      elsif build.without?("python") && build.with?("python3")
+        args << "-DVTK_WRAP_PYTHON=ON"
+        args << "-DPYTHON_EXECUTABLE=/usr/local/bin/python3"
+        args << "-DPYTHON_INCLUDE_DIR='#{`python3-config --prefix`.chomp}/include/python3.5m'"
+        # CMake picks up the system"s python dylib, even if we have a brewed one.
+        args << "-DPYTHON_LIBRARY='#{`python3-config --prefix`.chomp}/lib/libpython3.5.dylib'"
+        # Set the prefix for the python bindings to the Cellar
+        args << "-DVTK_INSTALL_PYTHON_MODULE_DIR='#{lib}/python3.5/site-packages'"
+      elsif build.with?("python3") && build.with?("python")
+        # Does not currenly support building both python 2 and 3 versions
+         odie "VTK: Does not currently support building both python 2 and 3 wrappers"
       end
+
+      if build.with?("qt") || build.with?("qt5")
+        args << "-DVTK_WRAP_PYTHON_SIP=ON"
+        args << "-DSIP_PYQT_DIR='#{Formula["pyqt"].opt_share}/sip'" if build.with? "qt"
+        args << "-DSIP_PYQT_DIR='#{Formula["pyqt5"].opt_share}/sip'" if build.with? "qt5"
+      end
+
       args << ".."
       system "cmake", *args
       system "make"

@@ -3,16 +3,14 @@ class Bcftools < Formula
   homepage "http://www.htslib.org/"
   # tag "bioinformatics"
 
-  url "https://github.com/samtools/bcftools/archive/1.2.tar.gz"
-  sha256 "90ccd7dccfb0b2848b71f32fff073c420260e857b7feeb89c1fb4bfaba49bfba"
+  url "https://github.com/samtools/bcftools/releases/download/1.3/bcftools-1.3.tar.bz2"
+  sha256 "fc5332e49546d55120551b0d5fb690f79e4f2216b8492c7b53033cdaa4256a3d"
   head "https://github.com/samtools/bcftools.git"
 
   bottle do
-    cellar :any
-    revision 1
-    sha256 "e5722e46e71e0af5719fee3949b76a56cb75d94318ffc1aa68ce0d758cddcd32" => :yosemite
-    sha256 "4b5c238d91a078c98637fec874644fbe352d14f01f83c3a8de4c6627301ced4a" => :mavericks
-    sha256 "4395d3e784632d25f34dfb431ebae11457206dddef3a580f87ed75c6500b594d" => :mountain_lion
+    sha256 "7abcf9981eefd124b830f6e20615e63c94d618f8d63a2cfe7d432963abce8081" => :el_capitan
+    sha256 "eebbc40d36b3a3dda96396dcdddaa50ac52675252ae8bce8c5d0ff031db59e33" => :yosemite
+    sha256 "0b1800347a3219efad6955347fd3652bac5769c32b0b4dfbf16c9577d262d5b5" => :mavericks
   end
 
   option "with-polysomy", "Enable polysomy command. Makes licence GPL3 not MIT/Expat."
@@ -24,7 +22,7 @@ class Bcftools < Formula
   def install
     inreplace "Makefile", "include $(HTSDIR)/htslib.mk", ""
     htslib = Formula["htslib"].opt_prefix
-    args = %W[make install prefix=#{prefix} HTSDIR=#{htslib}/include HTSLIB=#{htslib}/lib/libhts.a]
+    args = %W[make all install prefix=#{prefix} HTSDIR=#{htslib}/include HTSLIB=#{htslib}/lib/libhts.a]
 
     if build.with? "polysomy"
       args << "USE_GPL=1"
