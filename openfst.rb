@@ -4,8 +4,6 @@ class Openfst < Formula
   url "http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.3.tar.gz"
   sha256 "5c28b6ccd017fc6ff94ebd0c73ed8ab37d48f563dab1c603856fb05bc9333d99"
 
-  revision 1
-
   bottle do
     cellar :any
     sha256 "4b0e12fbc1e4fc1b54757cc87a3757e517186e95f8db6917b96966fd805dba6f" => :sierra
@@ -15,6 +13,8 @@ class Openfst < Formula
   end
 
   needs :cxx11
+
+  depends_on "zlib" unless OS.mac?
 
   def install
     ENV.cxx11
