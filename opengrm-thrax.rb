@@ -13,6 +13,7 @@ class OpengrmThrax < Formula
   end
 
   depends_on "openfst"
+  depends_on :python unless OS.mac?
 
   needs :cxx11
 
